@@ -80,34 +80,36 @@ async function run() {
 
         // user related apis
         app.get('/user', async (req, res) => {
-            const cursor = userCollection.find();
-            const users = await cursor.toArray();
-            res.send(users);
+            const users = userCollection.find()
+            const result = await users.toArray();
+            res.send(result)
         })
+
 
         app.post('/user', async (req, res) => {
             const user = req.body;
-            console.log(user);
             const result = await userCollection.insertOne(user);
             res.send(result);
-        });
+        })
 
-        app.patch('/user', async (req, res) => {
+        // Delete user
+        app.delete('/user/:id', async (req, res) => {
+            const userId = req.params.id;
+            const query = { _id: new ObjectId(userId) };
+            const result = await userCollection.deleteOne(query);
+            res.send(result);
+        })
+
+        app.patch('/users', async(req, res) =>{
             const user = req.body;
-            const filter = { email: user.email }
+            const options = { upsert: true };
+            const filter = {email: user.email};
             const updateDoc = {
                 $set: {
                     lastLoggedAt: user.lastLoggedAt
                 }
             }
-            const result = await userCollection.updateOne(filter, updateDoc);
-            res.send(result);
-        })
-
-        app.delete('/user/:id', async (req, res) => {
-            const id = req.params.id;
-            const query = { _id: new ObjectId(id) };
-            const result = await userCollection.deleteOne(query);
+            const result = await userCollection.updateOne(filter, updateDoc, options);
             res.send(result);
         })
 
